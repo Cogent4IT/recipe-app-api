@@ -1,0 +1,19 @@
+# this is version of docker compose standard
+version: '3.9'
+
+# context: . :- build app within the current directory
+# '8000:8000' : map ports from local machine to docker container
+#  ./app:/app : map directories from local to docker container directory
+services:
+  app:
+    build:
+      context: .
+      # during development, this dev arg should be true and will replace it true in Dockerfile
+      args:
+        - DEV=true
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./app:/app
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"

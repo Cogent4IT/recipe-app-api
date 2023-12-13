@@ -1,0 +1,28 @@
+# 3 dashes means it is a yaml file
+---
+# name of file
+name: Checks
+# trigger specifies that it runs on any push/check ins
+on: [push]
+
+# test-lint: is the name of job id
+# docker/login-action@v1 : existing action provided by GitHub, e.g. login to docker
+# uses: actions/checkout@v2: another pre-defined step that to trigger code checkout to perform further action i.e. testing and linting
+# docker-compose run --rm app sh -c "python manage.py test" :- run unit test cases
+# docker-compose run --rm app sh -c "flake8" :- do the linting process
+jobs:
+  test-lint:
+    name: Test and Lint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Test
+        run: docker-compose run --rm app sh -c "python manage.py test"
+      - name: Lint
+        run: docker-compose run --rm app sh -c "flake8"
