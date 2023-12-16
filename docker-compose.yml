@@ -15,5 +15,33 @@ services:
       - '8000:8000'
     volumes:
       - ./app:/app
+    # check for "wait_for_db" berore running the server ("&&"" is the line break)
+    # python manage.py migrate :- run any migration we have
+    # python manage.py runserver 0.0.0.0:8000 :- start the server
     command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py wait_for_db &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    # indicating app service that connect with db using these credentials in docker env.
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=devuser
+      - DB_PASS=changeme
+    # it indicates to docker compose that configuration specify below is dependent i.e. it should install that first to start app service.
+    depends_on:
+      - db
+
+  # database related settings, mapping with DB_HOST=db above
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+    # this credentials is for local development and not for production env.
+    environment:
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=changeme
+# for persistent data, we define volumes
+volumes:
+  dev-db-data:

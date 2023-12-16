@@ -26,12 +26,20 @@ EXPOSE 8000
 ARG DEV=false
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
+    # install postgresql client
+    apk add --update --no-cache postgresql-client && \
+    # we group all the dependencies comes as part of above installtion and specify as "Virtual" with tag name:.tmp-build-deps
+    apk add --update --no-cache --virtual .tmp-build-deps \
+        # use these two packages to install : postgresql-dev and musl-dev
+        build-base postgresql-dev musl-dev && \
     /py/bin/pip install -r /tmp/requirements.txt && \
     # adding shell script, if dev arg is true, install requirements.dev.txt packages as well
     if [ $DEV = "true" ]; \
         then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
     fi && \
     rm -rf /tmp && \
+    # remove the packages that required to install postgresql i.e. postgresql-dev and musl-dev that are part of .tmp-build-deps
+    apk del .tmp-build-deps && \
     adduser \
         --disabled-password \
         --no-create-home \
